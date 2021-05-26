@@ -1,10 +1,10 @@
 # Spring WebFlux Reactive App RBAC with Azure AD
 
-This demo explains how to get Azure AD JWT token based RBAC implementation for a Spring WebFlux reactive app. 
+This demo explains how to get Azure AD JWT token based RBAC implementation for a Spring WebFlux reactive app.
 
-Microsoft provides a maven dependency, `azure-active-directory-spring-boot-starter` for integrating Azure AD authenticaiton into Spring based applications. However, this dependency expects the servlet dependencies to be present and hence does not work with reactive WebFlux based applications. 
+Microsoft provides a maven dependency, `azure-active-directory-spring-boot-starter` for integrating Azure AD authenticaiton into Spring based applications. However, this dependency expects the servlet dependencies to be present and hence does not work with reactive WebFlux based applications.
 
-This demo leverages the spring native `spring-boot-starter-security` dependency along with `spring-security-oauth2-resource-server` and `spring-security-oauth2-jose` to implement a reactive spring OAuth2.0 resource server backed by Azure AD. 
+This demo leverages the spring native `spring-boot-starter-security` dependency along with `spring-security-oauth2-resource-server` and `spring-security-oauth2-jose` to implement a reactive spring OAuth2.0 resource server backed by Azure AD.
 
 ## Azure Setup
 
@@ -41,27 +41,27 @@ Add the below maven dependencies to your project:
 
 ### Configure application to use Azure AD provider
 
-In `application.yml`, initialize spring security resource server to use Azure AD as the authorization server by setting `spring.security.oauth2.resourceserver.jwt.issuer-uri` to the issuer URI of your app. 
+In `application.yml`, initialize spring security resource server to use Azure AD as the authorization server by setting `spring.security.oauth2.resourceserver.jwt.issuer-uri` to the issuer URI of your app.
 
 To find your issuer URI,
 - Use the `iss` claim in your JWT token
 - From your application endpoints, hit the open id metadata document URL. Hit it and find the `issuer_uri` property
-- Build it yourself: `https://login.microsoftonline.com/<your-tenant-id>/v2.0` 
+- Build it yourself: `https://login.microsoftonline.com/<your-tenant-id>/v2.0`
 
 ### Enable Spring WebFlux Security
 
 - Use `@EnableWebFluxSecurity` to enable Spring WebFlux reactive security
 - Optionally, use `@EnableReactiveMethodSecurity` to enable method level security checks, including pre/post authorize annotations
 
-At this point, your application is fully secured by Azure AD based RBAC. However, this is incomplete. With the above configurations, Spring only checks for the `iss` claim i.e., the JWT token's issuer and `exp` claim i.e., the JWT token's expiry. 
+At this point, your application is fully secured by Azure AD based RBAC. However, this is incomplete. With the above configurations, Spring only checks for the `iss` claim i.e., the JWT token's issuer and `exp` claim i.e., the JWT token's expiry.
 
-This is by design, as Spring allows plugging in multiple auth providers and implementations. 
+This is by design, as Spring allows plugging in multiple auth providers and implementations.
 
 ### Customizing Security Checks
 
 #### Validate the Token's audience
 
-The `aud` claim i.e., to which application was the token generated for, is set inside this claim by Azure AD. 
+The `aud` claim i.e., to which application was the token generated for, is set inside this claim by Azure AD.
 
 We have captured the client id from Azure AD as part of the Azure setups.
 
@@ -84,15 +84,15 @@ ReactiveJwtDecoder jwtDecoder() {
 }
 ```
 
-The `clientId` parameter can be maintained as an externalized configuration. 
+The `clientId` parameter can be maintained as an externalized configuration.
 
 #### Validate the Token based on AppRoles instead of Scope
 
-By default, Spring maps the `scp` claims into `GrantedAuthorities` which informs the application code about the list of permissions granted as part of the token. 
+By default, Spring maps the `scp` claims into `GrantedAuthorities` which informs the application code about the list of permissions granted as part of the token.
 
-If the application registered custom application roles in Azure AD, `roles` claim would be appended specific to each user by Azure AD. 
+If the application registered custom application roles in Azure AD, `roles` claim would be appended specific to each user by Azure AD.
 
-If the application needs these roles and intends to implement method level authorization, typically via `@PreAuthorize("hasRole('<your role>')"`, supply your custom authority extractor like below: 
+If the application needs these roles and intends to implement method level authorization, typically via `@PreAuthorize("hasRole('<your role>')"`, supply your custom authority extractor like below:
 
 ```java
 Converter<Jwt, Mono<AbstractAuthenticationToken>> grantedAuthoritiesExtractor() {
@@ -115,6 +115,8 @@ Converter<Jwt, Mono<AbstractAuthenticationToken>> grantedAuthoritiesExtractor() 
 _Note: for method level authorization, `@EnableReactiveMethodSecurity` has to be placed inside application components_
 
 Now, for every request, the JWT token would be converted into an `AuthenticatedPrincipal` and can be used in every layer of your application to perform pre authorization.
+
+Below is a sample method which checks if the incoming request's User has role `admin` as part of the `roles` claim. 
 
 ```java
 @PreAuthorize("hasRole('admin')")
