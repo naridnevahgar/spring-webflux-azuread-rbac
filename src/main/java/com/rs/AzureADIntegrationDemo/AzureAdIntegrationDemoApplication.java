@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.jwt.*;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.reactive.config.EnableWebFlux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @SpringBootApplication
+@EnableWebFlux
 @Slf4j
 public class AzureAdIntegrationDemoApplication {
 
